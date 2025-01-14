@@ -51,23 +51,40 @@ end
 # LaTeX
 # Define LaTeX shortcuts
 _tex(args...; kwargs...) = glossary(:LaTeX, args...; kwargs...)
+define!(
+    :LaTeX,
+    :aligned,
+    (lines...) -> raw"\begin{aligned} " * join(lines, raw"\\ ") * raw"\end{aligned}",
+)
 define!(:LaTeX, :big, raw"\big")
 define!(:LaTeX, :bigl, raw"\bigl")
 define!(:LaTeX, :bigr, raw"\bigr")
 define!(:LaTeX, :Big, raw"\Big")
 define!(:LaTeX, :Bigl, raw"\Bigl")
 define!(:LaTeX, :Bigr, raw"\Bigr")
+define!(:LaTeX, :cos, raw"\cos")
 define!(:LaTeX, :def, raw"\coloneqq")
 define!(:LaTeX, :Cal, (letter) -> raw"\mathcal " * "$letter")
 define!(:LaTeX, :exp, raw"\exp")
 define!(:LaTeX, :frac, (a, b) -> raw"\frac" * "{$a}{$b}")
-define!(:LaTeX, :Frak, (letter) -> raw"\mathfrak " * "$letter")
+define!(:LaTeX, :frak, (letter) -> raw"\mathfrak " * "$letter")
 define!(:LaTeX, :l, "") # lazy fallback for sets
 define!(:LaTeX, :r, "") # lazy fallback for sets
 define!(:LaTeX, :log, raw"\log")
+define!(
+    :LaTeX, :norm, (term; index = "") -> raw"\lVert" * "$term" * raw"\rVert" * "_{$index}"
+)
+define!(
+    :LaTeX,
+    :pmatrix,
+    (lines...) -> raw"\begin{pmatrix} " * join(lines, raw"\\ ") * raw"\end{pmatrix}",
+)
 define!(:LaTeX, :qquad, raw"\qquad")
 define!(:LaTeX, :quad, raw"\quad")
 define!(:LaTeX, :rm, (letter) -> raw"\mathrm" * "{$letter}")
+define!(:LaTeX, :sin, raw"\sin")
+define!(:LaTeX, :sqrt, (term) -> raw"\sqrt" * "{$term}")
+define!(:LaTeX, :sum, raw"\sum")
 define!(
     :LaTeX,
     :Set,
@@ -84,9 +101,10 @@ define!(
     (elem, cond, size="") ->
         _tex(:Set, elem * raw"\ " * _tex(Symbol("$(size)")) * raw"|\ " * "$(cond)", size),
 )
-define!(:LaTeX, :sum, raw"\sum")
+define!(:LaTeX, :text, (text) -> raw"\text" * "{$(text)}")
 define!(:LaTeX, :transp, raw"\mathrm{T}")
 define!(:LaTeX, :text, (text) -> raw"\text" * "{$text}")
+define!(:LaTeX, :vec, (v) -> raw"\mathbf" * "{$v}")
 
 #
 # ---
@@ -95,24 +113,46 @@ define!(:LaTeX, :text, (text) -> raw"\text" * "{$text}")
 # :description the description
 _math(args...; kwargs...) = glossary(:Math, args...; kwargs...)
 define!(:Math, :Adjoint, :symbol, raw"\mathrm{Ad}")
-define!(:Math, :Adjoint, :descrption, "the adjoint operation")
+define!(:Math, :Adjoint, :description, "the adjoint operation")
 define!(:Math, :Ad, _math(:Adjoint, :symbol))
 define!(:Math, :GroupAction, :symbol, "⋅")
-define!(:Math, :GroupAction, :descrption, "a Lie Group Action")
+define!(:Math, :GroupAction, :description, "a Lie Group Action")
+define!(:Math, :⋅, _math(:GroupAction, :symbol))
 define!(:Math, :act, _math(:GroupAction, :symbol))
 define!(:Math, :GroupOp, :symbol, "∘")
-define!(:Math, :GroupOp, :descrption, "the Lie Group operation")
+define!(:Math, :GroupOp, :description, "the Lie Group operation")
 define!(:Math, :∘, _math(:GroupOp, :symbol))
 define!(:Math, :e, _tex(:rm, "e"))
-define!(:Math, :LieAlgebra, :symbol, (; g="g") -> _tex(:Frak, g))
-define!(:Math, :LieAlgebra, :descrption, "the ie Algebra")
+define!(:Math, :LieAlgebra, :symbol, (; g="g") -> _tex(:frak, g))
+define!(:Math, :LieAlgebra, :description, "the ie Algebra")
 define!(:Math, :𝔤, (; G="G") -> _math(:LieAlgebra, :symbol; g="g"))
 define!(:Math, :LieGroup, :symbol, (; G="G") -> _tex(:Cal, G))
-define!(:Math, :LieGroup, :descrption, "the Lie Group")
+define!(:Math, :LieGroup, :description, "the Lie Group")
 define!(:Math, :G, (; G="G") -> _math(:LieGroup, :symbol; G=G))
 define!(:Math, :Manifold, :symbol, (; M="M") -> _tex(:Cal, M))
-define!(:Math, :Manifold, :descrption, "the Riemannian manifold")
+define!(:Math, :Manifold, :description, "the Riemannian manifold")
 define!(:Math, :M, (; M="M") -> _math(:Manifold, :symbol; M=M))
+define!(:Math, :O, :symbol, _tex(:rm, "O"))
+define!(:Math, :O, :description, "the orthogonal group")
+define!(:Math, :O, _math(:O, :symbol))
+define!(:Math, :SE, :symbol, _tex(:rm, "SE"))
+define!(:Math, :SE, :description, "the special Euclidean group")
+define!(:Math, :SE, _math(:SE, :symbol))
+define!(:Math, :SO, :symbol, _tex(:rm, "SO"))
+define!(:Math, :SO, :description, "the special orthogonal group")
+define!(:Math, :SO, _math(:SO, :symbol))
+define!(:Math, :so, :symbol, _tex(:frak, "so"))
+define!(:Math, :so, :description, "the Lie algebra of so special orthogonal group")
+define!(:Math, :so, _math(:so, :symbol))
+define!(:Math, :SU, :symbol, _tex(:rm, "SO"))
+define!(:Math, :SU, :description, "the special unitary group")
+define!(:Math, :SU, _math(:SU, :symbol))
+define!(:Math, :U, :symbol, _tex(:rm, "U"))
+define!(:Math, :U, :description, "the unitary group")
+define!(:Math, :U, _math(:U, :symbol))
+define!(:Math, :T, :symbol, _tex(:Cal, "T"))
+define!(:Math, :T, :description, "the translation group")
+define!(:Math, :T, _math(:T, :symbol))
 
 #
 # ---

@@ -1,8 +1,8 @@
 """
     TranslationGroup{𝔽,T}
 
-The Lie group consisting of the [`AdditionGroupOperation`](@ref) on some
-[`Euclidean`](@extref `Manifolds.Euclidean`) space.
+The translation group ``$(_math(:T))(n)`` is Lie group consisting of
+the [`AdditionGroupOperation`](@ref) on some [`Euclidean`](@extref `Manifolds.Euclidean`) space.
 
 # Constructor
     TranslationGroup(n₁,...,nᵢ; kwargs...)

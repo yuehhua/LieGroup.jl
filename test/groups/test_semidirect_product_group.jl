@@ -10,30 +10,12 @@ using LieGroupsTestSuite
     G1 = LieGroup(M, op1)
     op2 = LieGroupsTestSuite.DummySecondOperation()
     G2 = LieGroup(M, op2)
-
-    fcts = [
-        # compose,
-        # conjugate,
-        # diff_conjugate,
-        # diff_inv,
-        # diff_left_compose,
-        # diff_right_compose,
-        # exp,
-        # hat,
-        # inv,
-        # inv_left_compose,
-        # inv_right_compose,
-        # is_identity,
-        # lie_bracket,
-        # log,
-        # rand,
-        show,
-        #vee,
-    ]
+    # The rest requires tests with a concrete semi-direct one
+    fcts = [show]
 
     Gl = LeftSemidirectProductLieGroup(G1, G2, LeftGroupOperationAction())
     properties = Dict(
-        :Name => "The Power Manifold",
+        :Name => "The Left Semidirect Product Manifold",
         # :Rng => Random.MersenneTwister(),
         :Functions => fcts,
     )
@@ -44,7 +26,7 @@ using LieGroupsTestSuite
 
     Gr = RightSemidirectProductLieGroup(G1, G2, RightGroupOperationAction())
     properties = Dict(
-        :Name => "The Power Manifold",
+        :Name => "The Right Semidirect Product Manifold",
         # :Rng => Random.MersenneTwister(),
         :Functions => fcts,
     )

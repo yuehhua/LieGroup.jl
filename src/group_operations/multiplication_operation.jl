@@ -324,12 +324,12 @@ function ManifoldsBase.log!(
     return X
 end
 function ManifoldsBase.log!(
-    ::LieGroup{𝔽,MatrixMultiplicationGroupOperation},
+    G::LieGroup{𝔽,MatrixMultiplicationGroupOperation},
     X,
     ::Identity{MatrixMultiplicationGroupOperation},
     ::Identity{MatrixMultiplicationGroupOperation},
 ) where {𝔽}
-    fill!(X, 0)
+    zero_vector!(LieAlgebra(G), X)
     return X
 end
 

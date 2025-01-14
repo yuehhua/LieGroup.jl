@@ -31,21 +31,25 @@ using LieGroupsTestSuite
         X = :nonetoo
         begin # locally define identity element
             LieGroups.identity_element(::typeof(G)) = :id
-            LieGroups.exp!(::typeof(G), h, ::typeof(e), X, t::Number=1) = :id
+            LieGroups.identity_element!(::typeof(G), g) = g[] = :id
+            ManifoldsBase.exp!(::typeof(G), h, ::typeof(e), X, t::Number=1) = :id
             @test exp(G, e, X) === :id
-            # delete both methods again
-            Base.delete_method(which(identity_element, (typeof(G),)))
-            Base.delete_method(which(exp!, typeof.([G, h, e, X, 1])))
             #
             # same for log
             ManifoldsBase.allocate_result(::typeof(G), ::typeof(log), g) = :g
-            LieGroups.log!(::typeof(G), X, ::Identity, g) = :g
+            ManifoldsBase.log!(::typeof(G), X, ::Identity, g) = :g
             @test log(G, e, g) === :g
-            # delete both methods again
+            g2 = Ref(:g)
+            inv!(G, g2, e)
+            @test g2[] == :id
+            # delete methods again
+            Base.delete_method(which(identity_element, (typeof(G),)))
+            Base.delete_method(which(identity_element!, typeof.([G, g2])))
+            Base.delete_method(which(ManifoldsBase.exp!, typeof.([G, h, e, X, 1])))
             Base.delete_method(which(ManifoldsBase.allocate_result, typeof.([G, log, g])))
-            Base.delete_method(which(log!, typeof.([G, X, e, g])))
+            Base.delete_method(which(ManifoldsBase.log!, typeof.([G, X, e, g])))
         end
-        # so they arae undefined here again but we checked the exp fallback
+        # so they are undefined here again but we checked the exp fallback
         @test_throws MethodError exp!(G, g, e, X)
         @test_throws MethodError log!(G, X, e, g)
     end
@@ -53,7 +57,7 @@ using LieGroupsTestSuite
         M = ManifoldsBase.DefaultManifold(2)
         op = AdditionGroupOperation()
         G = LieGroup(M, op)
-        B2 = LieAlgebraOrthogonalBasis()
+        B2 = DefaultLieAlgebraOrthogonalBasis()
         B = DefaultOrthonormalBasis()
         p = [1.0, 2.0]
         q = [0.0, 0.0]
