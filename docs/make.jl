@@ -34,6 +34,9 @@ end
 if Base.active_project() != joinpath(@__DIR__, "Project.toml")
     using Pkg
     Pkg.activate(@__DIR__)
+    # local temp hack - load ManifoldsBase and Manifold in dev as well
+    Pkg.develop(PackageSpec(; path=(@__DIR__) * "/../../ManifoldsBase.jl/"))
+    Pkg.develop(PackageSpec(; path=(@__DIR__) * "/../../Manifolds.jl/"))
     Pkg.develop(PackageSpec(; path=(@__DIR__) * "/../"))
     Pkg.resolve()
     Pkg.instantiate()
@@ -56,7 +59,8 @@ if "--quarto" ∈ ARGS
         run(`quarto render $(tutorials_folder)`)
         return nothing
     end
-else # fallback to at least create empty files for Optimize and Implement
+else
+    # fallback to at least create empty files for tutorials that are directly linked from the docs
     #    touch(joinpath(@__DIR__, "src/tutorials/Optimize.md"))
 end
 
@@ -113,7 +117,7 @@ links = InterLinks(
 makedocs(;
     format=Documenter.HTML(;
         prettyurls=(get(ENV, "CI", nothing) == "true") || ("--prettyurls" ∈ ARGS),
-        assets=["assets/favicon.ico", "assets/citations.css"],
+        assets=["assets/favicon.ico", "assets/citations.css", "assets/link-icons.css"],
     ),
     modules=[LieGroups],
     authors="Seth Axen, Mateusz Baran, Ronny Bergmann, Olivier Verdier, and contributors",
@@ -129,7 +133,11 @@ makedocs(;
             "Power group" => "groups/power_group.md",
             "Product group" => "groups/product_group.md",
             "Semidirect product group" => "groups/semidirect_product_group.md",
-            "Translation group" => "groups/translation.md",
+            "Special Euclidean group" => "groups/special_euclidean_group.md",
+            "Special orthogonal group" => "groups/special_orthogonal_group.md",
+            "Special unitary group" => "groups/special_unitary_group.md",
+            "Translation group" => "groups/translation_group.md",
+            "unitary group" => "groups/unitary_group.md",
         ],
         "Interfaces" => [
             "Lie group" => "interface/group.md",

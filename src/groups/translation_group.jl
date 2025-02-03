@@ -1,8 +1,8 @@
 """
     TranslationGroup{𝔽,T}
 
-The Lie group consisting of the [`AdditionGroupOperation`](@ref) on some
-[`Euclidean`](@extref `Manifolds.Euclidean`) space.
+The translation group ``$(_math(:T))(n)`` is Lie group consisting of
+the [`AdditionGroupOperation`](@ref) on some [`Euclidean`](@extref `Manifolds.Euclidean`) space.
 
 # Constructor
     TranslationGroup(n₁,...,nᵢ; kwargs...)
@@ -10,6 +10,8 @@ The Lie group consisting of the [`AdditionGroupOperation`](@ref) on some
 Generate the translation group on ``𝔽^{n₁,…,nᵢ}`` = `Euclidean(n₁,...,nᵢ; field=𝔽)`,
 which is isomorphic to the group itself. All keyword arguments in `kwargs...`
 are passed on to [`Euclidean`](@extref `Manifolds.Euclidean`) as well
+
+We denote the Lie Algebra of ``$(_math(:T))(n)`` by ``$(_math(:t))(n)``.
 """
 const TranslationGroup{𝔽,T} = LieGroup{𝔽,AdditionGroupOperation,Manifolds.Euclidean{T,𝔽}}
 

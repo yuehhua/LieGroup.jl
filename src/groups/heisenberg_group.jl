@@ -1,20 +1,32 @@
 
-@doc raw"""
-    HeisenbergGroup{T} <: AbstractDecoratorManifold{ℝ}
+@doc """
+    HeisenbergGroup{T}
 
-Heisenberg group `HeisenbergGroup(n)` is the group of ``(n+2)×(n+2)`` matrices [BinzPods:2008](@cite)
+The `HeisenbergGroup(n)` is the group of ``(n+2)×(n+2)`` matrices,
+see also [BinzPods:2008](@cite) or [Heisenberg group](https://en.wikipedia.org/wiki/Heisenberg_group)
+where `T` specifies the `eltype` of the matrix entries. `
 
 ```math
-\begin{bmatrix} 1 & \mathbf{a} & c \\
-\mathbf{0} & I_n & \mathbf{b} \\
-0 & \mathbf{0} & 1 \end{bmatrix}
+$(_tex(:pmatrix,
+    "1 & $(_tex(:vec, "a"))^{$(_tex(:transp))} & c",
+    "$(_tex(:vec, 0))_n & I_n & $(_tex(:vec, "b"))",
+    "0 & $(_tex(:vec, 0))_n^{$(_tex(:transp))} & 1"
+)),
 ```
 
-where ``I_n`` is the ``n×n`` unit matrix, ``\mathbf{a}`` is a row vector of length ``n``,
-``\mathbf{b}`` is a column vector of length ``n`` and ``c`` is a real number.
+where ``I_n`` is the ``n×n`` unit matrix, ``$(_tex(:vec, "a")), $(_tex(:vec, "b")) ∈ ℝ^n`` are vectors of length ``n``,
+``$(_tex(:vec, 0))_n`` is the zero vector of length ``n``, and ``c ∈ ℝ`` is a real number.
 The group operation is matrix multiplication.
 
-The left-invariant metric on the manifold is used.
+The Lie Algebra consists of the elements
+```math
+$(_tex(:pmatrix,
+    "0 & $(_tex(:vec, "a"))^{$(_tex(:transp))} & c",
+    "$(_tex(:vec, 0))_n & Z_n & $(_tex(:vec, "b"))",
+    "0 & $(_tex(:vec, 0))_n^{$(_tex(:transp))} & 0"
+)),
+```
+where additionally ``Z_n`` denotes the ``n×n`` zero matrix.
 """
 const HeisenbergGroup{T} = LieGroup{
     ℝ,MatrixMultiplicationGroupOperation,Manifolds.HeisenbergMatrices{T}
@@ -36,30 +48,39 @@ function _heisenberg_b_view(G::HeisenbergGroup, g)
     return view(g, 2:(n + 1), n + 2)
 end
 
-@doc raw"""
-    exp(G::HeisenbergGroup, ::Identity{MatrixMultiplicationGroupOperation}, X)
+@doc """
+    exp(G::HeisenbergGroup, X)
+    exp!(G::HeisenbergGroup, g, X)
 
-Lie group exponential for the [`HeisenbergGroup`](@ref) `G` of the vector `X`.
-The formula reads
+Compute the Lie group exponential for the [`HeisenbergGroup`](@ref) `G` of the vector `X`.
+
+For ``X = $(_tex(:pmatrix,
+    "0 & $(_tex(:vec, "a"))^{$(_tex(:transp))} & c",
+    "$(_tex(:vec, 0))_n & Z_n & $(_tex(:vec, "b"))",
+    "0 & $(_tex(:vec, 0))_n^{$(_tex(:transp))} & 0"
+))``
+from the Lie algebra of the Heisenberg group,
+where ``$(_tex(:vec, "a")), $(_tex(:vec, "b")) ∈ ℝ^n`` vectors of length ``n``,
+``$(_tex(:vec, 0))_n`` is the zero vector of length ``n``, ``c ∈ ℝ``, and
+``Z_n`` denotes the ``n×n`` zero matrix.
+
+Then the
+
 ```math
-\exp\left(\begin{bmatrix} 0 & \mathbf{a} & c \\
-\mathbf{0} & 0_n & \mathbf{b} \\
-0 & \mathbf{0} & 0 \end{bmatrix}\right) = \begin{bmatrix} 1 & \mathbf{a} & c + \mathbf{a}⋅\mathbf{b}/2 \\
-\mathbf{0} & I_n & \mathbf{b} \\
-0 & \mathbf{0} & 1 \end{bmatrix}
+$(_tex(:exp))_{$(_tex(:Cal, "G"))}(X) =
+$(_tex(:pmatrix,
+    "1 & $(_tex(:vec, "a"))^{$(_tex(:transp))} & c + $(_tex(:frac,"1","2"))$(_tex(:vec, "a"))^{$(_tex(:transp))}$(_tex(:vec, "b"))",
+    "$(_tex(:vec, 0))_n & I_n & $(_tex(:vec, "b"))",
+    "0 & $(_tex(:vec, 0))_n^{$(_tex(:transp))} & 1"
+)),
 ```
-where ``I_n`` is the ``n×n`` identity matrix, ``0_n`` is the ``n×n`` zero matrix
-and ``\mathbf{a}⋅\mathbf{b}`` is dot product of vectors.
-"""
-function Base.exp(G::HeisenbergGroup, e::Identity{MatrixMultiplicationGroupOperation}, X)
-    h = similar(X)
-    exp!(G, h, e, X)
-    return h
-end
+where ``I_n`` is the ``n×n`` unit matrix.
 
-function ManifoldsBase.exp!(
-    G::HeisenbergGroup, h, ::Identity{MatrixMultiplicationGroupOperation}, X
-)
+This can be computed in-place of the Lie group element `g`.
+"""
+ManifoldsBase.exp(G::HeisenbergGroup, X)
+
+function ManifoldsBase.exp!(G::HeisenbergGroup, h, X)
     n = ManifoldsBase.get_parameter(G.manifold.size)[1]
     copyto!(h, I)
     a_view = _heisenberg_a_view(G, X)
@@ -70,25 +91,42 @@ function ManifoldsBase.exp!(
     return h
 end
 
-@doc raw"""
+@doc """
     exp(G::HeisenbergGroup, g, X)
 
 Exponential map on the [`HeisenbergGroup`](@ref) `G` with the left-invariant metric.
-The expression reads
+
+We denote by `g` a point on the Heisenberg group and by ``X`` a vector from the Lie algebra.
+These are of the form
+
 ```math
-\exp_{\begin{bmatrix} 1 & \mathbf{a}_p & c_p \\
-\mathbf{0} & I_n & \mathbf{b}_p \\
-0 & \mathbf{0} & 1 \end{bmatrix}}\left(\begin{bmatrix} 0 & \mathbf{a}_X & c_X \\
-\mathbf{0} & 0_n & \mathbf{b}_X \\
-0 & \mathbf{0} & 0 \end{bmatrix}\right) =
-\begin{bmatrix} 1 & \mathbf{a}_p + \mathbf{a}_X & c_p + c_X + \mathbf{a}_X⋅\mathbf{b}_X/2 + \mathbf{a}_p⋅\mathbf{b}_X \\
-\mathbf{0} & I_n & \mathbf{b}_p + \mathbf{b}_X \\
-0 & \mathbf{0} & 1 \end{bmatrix}
+g = $(_tex(:pmatrix,
+    "1 & $(_tex(:vec, "a"))^{$(_tex(:transp))} & c",
+    "$(_tex(:vec, 0))_n & I_n & $(_tex(:vec, "b"))",
+    "0 & $(_tex(:vec, 0))_n^{$(_tex(:transp))} & 1"
+))
+$(_tex(:qquad))
+X = $(_tex(:pmatrix,
+    "0 & $(_tex(:vec, "d"))^{$(_tex(:transp))} & f",
+    "$(_tex(:vec, 0))_n & Z_n & $(_tex(:vec, "e"))",
+    "0 & $(_tex(:vec, 0))_n^{$(_tex(:transp))} & 0"
+)),
 ```
-where ``I_n`` is the ``n×n`` identity matrix, ``0_n`` is the ``n×n`` zero matrix
-and ``\mathbf{a}⋅\mathbf{b}`` is dot product of vectors.
+where ``I_n`` is the ``n×n`` unit matrix, ``Z_n`` is the ``n×n`` zero matrix,
+``$(_tex(:vec, "a")), $(_tex(:vec, "b")), $(_tex(:vec, "d")), $(_tex(:vec, "e")) ∈ ℝ^n`` are vectors of length ``n``,
+``$(_tex(:vec, 0))_n`` is the zero vector of length ``n``, and ``c,f ∈ ℝ`` are real numbers.
+
+Then the formula reads
+```math
+$(_tex(:exp))_g(X) =
+$(_tex(:pmatrix,
+    "1 & ($(_tex(:vec, "a"))+$(_tex(:vec, "d")))^{$(_tex(:transp))} & c+f+$(_tex(:frac,"1","2"))$(_tex(:vec, "d"))^{$(_tex(:transp))}$(_tex(:vec, "e")) + $(_tex(:vec, "a"))^{$(_tex(:transp))}$(_tex(:vec, "e"))",
+    "$(_tex(:vec, 0))_n & I_n & $(_tex(:vec, "b"))+$(_tex(:vec, "e"))",
+    "0 & $(_tex(:vec, 0))_n^{$(_tex(:transp))} & 1"
+)).
+```
 """
-function Base.exp(G::HeisenbergGroup, g, X)
+function ManifoldsBase.exp(G::HeisenbergGroup, g, X)
     h = similar(X)
     exp!(G, h, g, X)
     return h
@@ -97,14 +135,14 @@ end
 function ManifoldsBase.exp!(G::HeisenbergGroup, h, g, X)
     n = ManifoldsBase.get_parameter(G.manifold.size)[1]
     copyto!(h, I)
-    a_p_view = _heisenberg_a_view(G, g)
-    b_p_view = _heisenberg_b_view(G, g)
+    a_g_view = _heisenberg_a_view(G, g)
+    b_g_view = _heisenberg_b_view(G, g)
     a_X_view = _heisenberg_a_view(G, X)
     b_X_view = _heisenberg_b_view(G, X)
-    h[1, 2:(n + 1)] .= a_p_view .+ a_X_view
-    h[2:(n + 1), n + 2] .= b_p_view .+ b_X_view
+    h[1, 2:(n + 1)] .= a_g_view .+ a_X_view
+    h[2:(n + 1), n + 2] .= b_g_view .+ b_X_view
     h[1, n + 2] =
-        g[1, n + 2] + X[1, n + 2] + dot(a_X_view, b_X_view) / 2 + dot(a_p_view, b_X_view)
+        g[1, n + 2] + X[1, n + 2] + dot(a_X_view, b_X_view) / 2 + dot(a_g_view, b_X_view)
     return h
 end
 
@@ -115,68 +153,53 @@ Return the injectivity radius on the [`HeisenbergGroup`](@ref) `G`, which is ``�
 """
 ManifoldsBase.injectivity_radius(::HeisenbergGroup) = Inf
 
-@doc raw"""
+@doc """
     log(G::HeisenbergGroup, g, h)
 
 Compute the logarithmic map on the [`HeisenbergGroup`](@ref) group.
-The formula reads
+
+We denote two points ``g, h`` from the Heisenberg by
+
 ```math
-\log_{\begin{bmatrix} 1 & \mathbf{a}_p & c_p \\
-\mathbf{0} & I_n & \mathbf{b}_p \\
-0 & \mathbf{0} & 1 \end{bmatrix}}\left(\begin{bmatrix} 1 & \mathbf{a}_q & c_q \\
-\mathbf{0} & I_n & \mathbf{b}_q \\
-0 & \mathbf{0} & 1 \end{bmatrix}\right) =
-\begin{bmatrix} 0 & \mathbf{a}_q - \mathbf{a}_p & c_q - c_p + \mathbf{a}_p⋅\mathbf{b}_p - \mathbf{a}_q⋅\mathbf{b}_q - (\mathbf{a}_q - \mathbf{a}_p)⋅(\mathbf{b}_q - \mathbf{b}_p) / 2 \\
-\mathbf{0} & 0_n & \mathbf{b}_q - \mathbf{b}_p \\
-0 & \mathbf{0} & 0 \end{bmatrix}
+g = $(_tex(:pmatrix,
+    "1 & $(_tex(:vec, "a"))^{$(_tex(:transp))} & c",
+    "$(_tex(:vec, 0))_n & I_n & $(_tex(:vec, "b"))",
+    "0 & $(_tex(:vec, 0))_n^{$(_tex(:transp))} & 1"
+))
+$(_tex(:qquad))
+h = $(_tex(:pmatrix,
+    "1 & $(_tex(:vec, "d"))^{$(_tex(:transp))} & f",
+    "$(_tex(:vec, 0))_n & I_n & $(_tex(:vec, "e"))",
+    "0 & $(_tex(:vec, 0))_n^{$(_tex(:transp))} & 1"
+)),
 ```
-where ``I_n`` is the ``n×n`` identity matrix, ``0_n`` is the ``n×n`` zero matrix
-and ``\mathbf{a}⋅\mathbf{b}`` is dot product of vectors.
+
+where ``I_n`` is the ``n×n`` unit matrix, ``$(_tex(:vec, "a")), $(_tex(:vec, "b")), $(_tex(:vec, "d")), $(_tex(:vec, "e")) ∈ ℝ^n`` are vectors of length ``n``,
+``$(_tex(:vec, 0))_n`` is the zero vector of length ``n``, and ``c,f ∈ ℝ`` are real numbers.
+
+Then formula reads
+```math
+$(_tex(:log))_g(h) = $(_tex(:pmatrix,
+    "0 & ($(_tex(:vec, "d"))-$(_tex(:vec, "q")))^{$(_tex(:transp))} & f - c + $(_tex(:vec, "a"))^{$(_tex(:transp))}$(_tex(:vec, "b")) - $(_tex(:vec, "d"))^{$(_tex(:transp))}$(_tex(:vec, "e")) - $(_tex(:frac,"1","2"))($(_tex(:vec, "d"))-$(_tex(:vec, "a")))^{$(_tex(:transp))}($(_tex(:vec, "e"))-$(_tex(:vec, "b")))",
+    "$(_tex(:vec, 0))_n & Z_n & $(_tex(:vec, "e")) - $(_tex(:vec, "b"))",
+    "0 & $(_tex(:vec, 0))_n^{$(_tex(:transp))} & 0"
+)),
+```
+where additionally ``Z_n`` denotes the ``n×n`` zero matrix.
 """
-Base.log(::HeisenbergGroup, g, h)
+ManifoldsBase.log(::HeisenbergGroup, g, h)
 
 function ManifoldsBase.log!(G::HeisenbergGroup, X, g, h)
     n = ManifoldsBase.get_parameter(G.manifold.size)[1]
     fill!(X, 0)
-    a_p_view = _heisenberg_a_view(G, g)
-    b_p_view = _heisenberg_b_view(G, g)
-    a_q_view = _heisenberg_a_view(G, h)
-    b_q_view = _heisenberg_b_view(G, h)
-    X[1, 2:(n + 1)] .= a_q_view .- a_p_view
-    X[2:(n + 1), n + 2] .= b_q_view .- b_p_view
-    pinvq_c = dot(a_p_view, b_p_view) - g[1, n + 2] + h[1, n + 2] - dot(a_p_view, b_q_view)
-    X[1, n + 2] = pinvq_c - dot(a_q_view - a_p_view, b_q_view - b_p_view) / 2
-    return X
-end
-
-@doc raw"""
-    log(G::HeisenbergGroup, ::Identity{MatrixMultiplicationGroupOperation}, g)
-
-Lie group logarithm for the [`HeisenbergGroup`](@ref) `G` of the point `g`.
-The formula reads
-```math
-\log\left(\begin{bmatrix} 1 & \mathbf{a} & c \\
-\mathbf{0} & I_n & \mathbf{b} \\
-0 & \mathbf{0} & 1 \end{bmatrix}\right) =
-\begin{bmatrix} 0 & \mathbf{a} & c - \mathbf{a}⋅\mathbf{b}/2 \\
-\mathbf{0} & 0_n & \mathbf{b} \\
-0 & \mathbf{0} & 0 \end{bmatrix}
-```
-where ``I_n`` is the ``n×n`` identity matrix, ``0_n`` is the ``n×n`` zero matrix
-and ``\mathbf{a}⋅\mathbf{b}`` is dot product of vectors.
-"""
-log(G::HeisenbergGroup, ::Identity{MatrixMultiplicationGroupOperation}, g)
-
-function ManifoldsBase.log!(
-    G::HeisenbergGroup, X, ::Identity{MatrixMultiplicationGroupOperation}, g
-)
-    n = ManifoldsBase.get_parameter(G.manifold.size)[1]
-    fill!(X, 0)
-    view_a_X = _heisenberg_a_view(G, X)
-    view_b_X = _heisenberg_b_view(G, X)
-    view_a_X .= _heisenberg_a_view(G, g)
-    view_b_X .= _heisenberg_b_view(G, g)
-    X[1, n + 2] = g[1, n + 2] - dot(view_a_X, view_b_X) / 2
+    a_g_view = _heisenberg_a_view(G, g)
+    b_g_view = _heisenberg_b_view(G, g)
+    a_h_view = _heisenberg_a_view(G, h)
+    b_h_view = _heisenberg_b_view(G, h)
+    X[1, 2:(n + 1)] .= a_h_view .- a_g_view
+    X[2:(n + 1), n + 2] .= b_h_view .- b_g_view
+    pinvq_c = dot(a_g_view, b_g_view) - g[1, n + 2] + h[1, n + 2] - dot(a_g_view, b_h_view)
+    X[1, n + 2] = pinvq_c - dot(a_h_view - a_g_view, b_h_view - b_g_view) / 2
     return X
 end
 function ManifoldsBase.log!(
@@ -184,6 +207,58 @@ function ManifoldsBase.log!(
     X,
     ::Identity{MatrixMultiplicationGroupOperation},
     ::Identity{MatrixMultiplicationGroupOperation},
+)
+    fill!(X, 0)
+    return X
+end
+
+@doc """
+    log(G::HeisenbergGroup, g)
+    log!(G::HeisenbergGroup, X, g)
+
+Compute the Lie group logarithm for the [`HeisenbergGroup`](@ref) `G`.
+
+For ``g = $(_tex(:pmatrix,
+    "1 & $(_tex(:vec, "a"))^{$(_tex(:transp))} & c",
+    "$(_tex(:vec, 0))_n & I_n & $(_tex(:vec, "b"))",
+    "0 & $(_tex(:vec, 0))_n^{$(_tex(:transp))} & 1"
+))``
+from the Lie algebra of the Heisenberg group,
+where ``$(_tex(:vec, "a")), $(_tex(:vec, "b")) ∈ ℝ^n`` vectors of length ``n``,
+``$(_tex(:vec, 0))_n`` is the zero vector of length ``n``, ``c ∈ ℝ``, and
+``I_n`` is the ``n×n`` unit matrix.
+
+Then the
+
+```math
+$(_tex(:log))_{$(_tex(:Cal, "G"))}(g) =
+$(_tex(:pmatrix,
+    "1 & $(_tex(:vec, "a"))^{$(_tex(:transp))} & c - $(_tex(:frac,"1","2"))$(_tex(:vec, "a"))^{$(_tex(:transp))}$(_tex(:vec, "b"))",
+    "$(_tex(:vec, 0))_n & Z_n & $(_tex(:vec, "b"))",
+    "0 & $(_tex(:vec, 0))_n^{$(_tex(:transp))} & 1"
+)),
+```
+where ``Z_n`` denotes the ``n×n`` zero matrix.
+
+This can be computed in-place of the Lie algebra vector `X`.
+"""
+ManifoldsBase.log(G::HeisenbergGroup, g)
+
+function ManifoldsBase.log!(G::HeisenbergGroup, X, g)
+    n = ManifoldsBase.get_parameter(G.manifold.size)[1]
+    fill!(X, 0)
+    # Obtain views to parts of x
+    view_a_X = _heisenberg_a_view(G, X)
+    view_b_X = _heisenberg_b_view(G, X)
+    # Set then to views of g
+    view_a_X .= _heisenberg_a_view(G, g)
+    view_b_X .= _heisenberg_b_view(G, g)
+    # Set first row last entry – since these contain g in X
+    X[1, n + 2] = g[1, n + 2] - dot(view_a_X, view_b_X) / 2
+    return X
+end
+function ManifoldsBase.log!(
+    ::HeisenbergGroup, X, ::Identity{MatrixMultiplicationGroupOperation}
 )
     fill!(X, 0)
     return X

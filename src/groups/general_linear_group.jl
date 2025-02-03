@@ -32,8 +32,8 @@ function GeneralLinearGroup(n::Int; field=ManifoldsBase.ℝ, kwargs...)
 end
 
 _doc_exp_GLn = """
-    exp(::GeneralLinearGroup, ::Identity{MatrixMultiplicationGroupOperation}, X)
-    exp!(::GeneralLinearGroup, g, ::Identity{MatrixMultiplicationGroupOperation}, X)
+    exp(::GeneralLinearGroup, X)
+    exp!(::GeneralLinearGroup, g, X)
 
 Compute the Lie group exponential on the [`GeneralLinearGroup`](@ref), which is given by the
 [matrix exponential](https://en.wikipedia.org/wiki/Matrix_exponential)
@@ -46,10 +46,10 @@ see also [HilgertNeeb:2012; Example 9.2.3 (b)](@cite)
 """
 
 @doc "$(_doc_exp_GLn)"
-exp(::GeneralLinearGroup, ::Identity{MatrixMultiplicationGroupOperation}, X)
+ManifoldsBase.exp(::GeneralLinearGroup, X)
 
 @doc "$(_doc_exp_GLn)"
-exp!(::GeneralLinearGroup, g, ::Identity{MatrixMultiplicationGroupOperation}, X)
+ManifoldsBase.exp!(::GeneralLinearGroup, g, X)
 
 function Base.show(io::IO, G::GeneralLinearGroup{𝔽}) where {𝔽}
     n = Manifolds.get_parameter(G.manifold.size)[1]
